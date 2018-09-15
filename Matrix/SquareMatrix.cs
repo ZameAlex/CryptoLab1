@@ -9,7 +9,6 @@ namespace Matrix
         protected SquareMatrix AdditionalMatrix { get; set; }
         public SquareMatrix ReverseMatrix { get; protected set; }
         public int Determinant { get; protected set; }
-        public int Module { get; set; }
 
         #region Constructors
         public SquareMatrix(int n)
@@ -127,20 +126,35 @@ namespace Matrix
             AdditionalMatrix = new SquareMatrix(resultMatrixElements);
         }
 
-       
+        private int ExtendedEuclideanAlgorithm(int a, int b, out int x, out int y)
+        {
+            if (a == 0)
+            {
+                x = 0; y = 1;
+                return b;
+            }
+            int x1, y1;
+            int d = ExtendedEuclideanAlgorithm(b % a, a, out x1, out y1);
+            x = y1 - (b / a) * x1;
+            y = x1;
+            return d;
+        }
 
         private int FindReverseDeterminant(int module)
         {
-
+            int x, y;
+            int g = ExtendedEuclideanAlgorithm(Determinant, module, out x, out y);
+            if (g == 1)
+                x = (x % module + module) % module;
+            return x;
         }
 
-        private void FindReverseMatrix()
+        public void FindReverseMatrix(int module)
         {
             FindAdditionalMatrix();
             AdditionalMatrix.Transpone();
-            AdditionalMatrix *= FindReverseDeterminant(Module);
+            AdditionalMatrix *= FindReverseDeterminant(module);
             ReverseMatrix = AdditionalMatrix;
-
         }
 
         #endregion PrivateMethods
