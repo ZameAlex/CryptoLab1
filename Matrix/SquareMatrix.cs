@@ -24,6 +24,12 @@ namespace Matrix
             RandomInitialization(min, max);
         }
 
+        public SquareMatrix(SquareMatrix matrix)
+        {
+            this.Count = matrix.Count;
+            MatrixElements = new int[Count, Count];
+            Array.Copy(matrix.MatrixElements, this.MatrixElements, MatrixElements.Length);
+        }
 
         public SquareMatrix(int[,] elements)
         {
@@ -54,13 +60,24 @@ namespace Matrix
 
         public void Transpone()
         {
-            for(int row=0;row<Count;row++)
-                for(int column=0;column<Count;column++)
+            for (int row = 0; row < Count; row++)
+                for (int column = row + 1; column < Count; column++)
                 {
                     var temp = this.MatrixElements[row, column];
                     this.MatrixElements[row, column] = this.MatrixElements[column, row];
                     this.MatrixElements[column, row] = temp;
                 }
+        }
+
+        public void FindReverseMatrix(int module)
+        {
+            FindAdditionalMatrix();
+            CountDeterminant();
+            if (Determinant == 0)
+                throw new ReverseMatrixNotExistsException();
+            AdditionalMatrix.Transpone();
+            AdditionalMatrix *= FindReverseDeterminant(module);
+            ReverseMatrix = AdditionalMatrix;
         }
 
         public int this[int row, int column] => MatrixElements[row, column];
@@ -85,26 +102,24 @@ namespace Matrix
             return Determinant;
         }
 
-        private int FindAlgerbricAddition(int row,int column)
+        private int FindAlgerbricAddition(int row, int column)
         {
-            if (this.Count == 1)
-                return this[0, 0];
-            var minor = new SquareMatrix(Count-1);
+            var minor = new SquareMatrix(Count - 1);
             var power = -1;
             if ((row + column) % 2 == 0)
                 power = 1;
             var tempAddForRow = 0;
-            for(int _row =0;_row<Count;_row++)
-            { 
-                if(row==_row)
+            for (int _row = 0; _row < Count; _row++)
+            {
+                if (row == _row)
                 {
                     tempAddForRow = -1;
                     continue;
                 }
                 var tempAddForColumn = 0;
-                for (int _column=0;_column<Count;_column++)
+                for (int _column = 0; _column < Count; _column++)
                 {
-                    if(column==_column)
+                    if (column == _column)
                     {
                         tempAddForColumn = -1;
                         continue;
@@ -112,13 +127,15 @@ namespace Matrix
                     minor.MatrixElements[_row + tempAddForRow, _column + tempAddForColumn] = this[_row, _column];
                 }
             }
-            return minor.CountDeterminant()*power;
+            if (minor.Count == 1)
+                return minor[0, 0] * power;
+            return minor.CountDeterminant() * power;
         }
 
         private void FindAdditionalMatrix()
         {
             var resultMatrixElements = new int[Count, Count];
-            for(int row=0;row<Count;row++)
+            for (int row = 0; row < Count; row++)
             {
                 for (int column = 0; column < Count; column++)
                     resultMatrixElements[row, column] = FindAlgerbricAddition(row, column);
@@ -146,18 +163,13 @@ namespace Matrix
             int g = ExtendedEuclideanAlgorithm(Determinant, module, out x, out y);
             if (g == 1)
                 x = (x % module + module) % module;
+            else
+                throw new ReverseMatrixNotExistsException();
             return x;
         }
 
-        public void FindReverseMatrix(int module)
-        {
-            FindAdditionalMatrix();
-            AdditionalMatrix.Transpone();
-            AdditionalMatrix *= FindReverseDeterminant(module);
-            ReverseMatrix = AdditionalMatrix;
-        }
-
         #endregion PrivateMethods
+
         #region OverloadOperations
         public static SquareMatrix operator +(SquareMatrix first, SquareMatrix second)
         {
@@ -177,7 +189,7 @@ namespace Matrix
             for (int row = 0; row < target.Count; row++)
             {
                 for (int column = 0; column < target.Count; column++)
-                    resultMatrixElements[row, column] /= diviser;
+                    resultMatrixElements[row, column] = target[row, column] / diviser;
             }
             return new SquareMatrix(resultMatrixElements);
         }
@@ -188,9 +200,20 @@ namespace Matrix
             for (int row = 0; row < target.Count; row++)
             {
                 for (int column = 0; column < target.Count; column++)
-                    resultMatrixElements[row, column] %= module;
+                {
+                    resultMatrixElements[row, column] = target[row, column] % module;
+                    if (resultMatrixElements[row, column] < 0)
+                        resultMatrixElements[row, column] += module;
+                }
             }
-            return new SquareMatrix(resultMatrixElements);
+            var temp = new SquareMatrix(resultMatrixElements);
+            if (target.AdditionalMatrix != null && target.ReverseMatrix != null && target.Determinant != 0)
+            {
+                temp.ReverseMatrix = target.ReverseMatrix % module;
+                temp.AdditionalMatrix = target.ReverseMatrix % module;
+                temp.Determinant = target.Determinant % module;
+            }
+            return temp;
         }
 
         public static SquareMatrix operator *(SquareMatrix target, int multiplexor)
@@ -199,7 +222,7 @@ namespace Matrix
             for (int row = 0; row < target.Count; row++)
             {
                 for (int column = 0; column < target.Count; column++)
-                    resultMatrixElements[row, column] *= multiplexor;
+                    resultMatrixElements[row, column] = target[row, column] * multiplexor;
             }
             return new SquareMatrix(resultMatrixElements);
         }
@@ -214,7 +237,7 @@ namespace Matrix
                 var temp = 0;
                 for (int column = 0; column < matrix.Count; column++)
                 {
-                    temp += vector[row] * matrix[column, row];
+                    temp += matrix[row, column] * vector[column];
                 }
                 resultVectorElements[row] = temp;
             }

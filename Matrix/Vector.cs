@@ -45,7 +45,7 @@ namespace Matrix
             int[] resultVectorElements = new int[target.Count];
             for (int count = 0; count < target.Count; count++)
             {
-                    resultVectorElements[count] %= module;
+                resultVectorElements[count] = target[count] % module;
             }
             return new Vector(resultVectorElements);
         }
@@ -55,7 +55,7 @@ namespace Matrix
             int[] resultVectorElements = new int[target.Count];
             for (int count = 0; count < target.Count; count++)
             {
-                    resultVectorElements[count] *= multiplexor;
+                resultVectorElements[count] = target[count] * multiplexor;
             }
             return new Vector(resultVectorElements);
         }
@@ -65,16 +65,16 @@ namespace Matrix
             if (vector.Count != matrix.Count)
                 throw new ArgumentException("Vector count and matrix count are not equals!");
             int[] resultVectorElements = new int[vector.Count];
-            for(int row=0;row<vector.Count;row++)
+            for (int row = 0; row < vector.Count; row++)
             {
                 var temp = 0;
-                for(int column=0;column<matrix.Count;column++)
+                for (int column = 0; column < matrix.Count; column++)
                 {
-                    temp += vector[row] * matrix[row, column];
+                    temp += vector[row] * matrix[column, row];
                 }
                 resultVectorElements[row] = temp;
             }
-           
+
             return new Vector(resultVectorElements);
         }
 
