@@ -10,11 +10,13 @@ namespace Lab1
         static void Main(string[] args)
         {
             HillCipher hill = new HillCipher(26);
-            var encodedMessage = hill.Encode("ACT");
-            Console.WriteLine(encodedMessage);
+            Console.WriteLine("Write message, please");
+            var encodedMessage = hill.Encode(Console.ReadLine());
+            Console.WriteLine($"Key: {hill.GetKey}");
+            Console.WriteLine($"Encoded message:\n{encodedMessage}");
             var decodedMessage = hill.Decode(encodedMessage);
-            Console.WriteLine(decodedMessage);
-            Console.WriteLine(decodedMessage);
+            Console.WriteLine($"Decoded message:\n{decodedMessage}");
+            Console.ReadKey();
         }
     }
 }

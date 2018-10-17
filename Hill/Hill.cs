@@ -12,7 +12,7 @@ namespace Hill
         private Dictionary<int, char> alphabet;
         private Dictionary<char, int> reverseAlphabet;
         private const int module = 29;
-
+        #region Constructors
         private HillCipher()
         {
             alphabet = new Dictionary<int, char>();
@@ -84,9 +84,24 @@ namespace Hill
 
         public HillCipher(int[,] key):this(new SquareMatrix(key))
         { }
+        #endregion Constructors
+
+        public string GetKey
+        {
+            get
+            {
+                StringBuilder key = new StringBuilder();
+                for (int row = 0; row < Key.Count; row++)
+                    for (int column = 0; column < Key.Count; column++)
+                        key.Append(alphabet[Key[row, column]]);
+                return key.ToString();
+            }
+        }
 
         public string Encode(string message)
         {
+            if (String.IsNullOrWhiteSpace(message))
+                message = "If you can keep your head when all about you Are losing theirs and blaming it on you, If you can trust yourself when all men doubt you, But make allowance for their doubting too";
             Key %= module;
             return Translate(message.ToLower(), Key);
         }
