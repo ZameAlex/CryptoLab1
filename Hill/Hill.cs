@@ -13,7 +13,7 @@ namespace Hill
         private Dictionary<char, int> reverseAlphabet;
         private const int module = 29;
 
-        public HillCipher()
+        private HillCipher()
         {
             alphabet = new Dictionary<int, char>();
             reverseAlphabet = new Dictionary<char, int>();
